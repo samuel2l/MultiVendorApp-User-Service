@@ -1,4 +1,4 @@
-const CustomerRepository = require("../database/repository/user-repository");
+const UserRepository = require("../database/repository/user-repository");
 const {
   FormatData,
   GeneratePassword,
@@ -6,28 +6,25 @@ const {
   ValidatePassword,
 } = require("../utils");
 
-class CustomerService {
+class UserService {
   constructor() {
-    this.repository = new CustomerRepository();
+    this.repository = new UserRepository();
   }
 
   async SignIn(userInputs) {
     const { email, password } = userInputs;
 
-    const existingCustomer = await this.repository.FindCustomer({ email });
+    const user = await this.repository.FindUser({ email });
 
-    if (existingCustomer) {
-      const validPassword = await ValidatePassword(
-        password,
-        existingCustomer.password
-      );
+    if (user) {
+      const validPassword = await ValidatePassword(password, user.password);
       if (validPassword) {
         const token = await GenerateSignature({
-          email: existingCustomer.email,
-          _id: existingCustomer._id,
-          role:existingCustomer.role
+          email: user.email,
+          _id: user._id,
+          role: user.role,
         });
-        return FormatData({ id: existingCustomer._id, token,role:existingCustomer.role });
+        return FormatData({ id: user._id, token, role: user.role });
       }
     }
 
@@ -35,24 +32,23 @@ class CustomerService {
   }
 
   async SignUp(userInputs) {
-    const { email, password, phone,role } = userInputs;
+    const { email, password, phone, role } = userInputs;
 
     let userPassword = await GeneratePassword(password);
 
-    const existingCustomer = await this.repository.CreateCustomer({
+    const user = await this.repository.CreateUser({
       email,
       password: userPassword,
       phone,
-      role
+      role,
     });
 
     const token = await GenerateSignature({
-
       email: email,
-      _id: existingCustomer._id,
-      role:role,
+      _id: user._id,
+      role: role,
     });
-    return FormatData({ id: existingCustomer._id, token,role });
+    return FormatData({ id: user._id, token, role });
   }
 
   async AddNewAddress(_id, userInputs) {
@@ -70,39 +66,40 @@ class CustomerService {
   }
 
   async GetProfile(id) {
-    const existingCustomer = await this.repository.FindCustomerById({ id });
-    return FormatData(existingCustomer);
+    const user = await this.repository.FindUserById({ id });
+    return FormatData(user);
   }
+
   async GetCart(id) {
-    const existingCustomer = await this.repository.FindCustomerById({ id });
-    return FormatData(existingCustomer.cart);
+    const user = await this.repository.FindUserById({ id });
+    return FormatData(user.cart);
   }
 
   async GetShoppingDetails(id) {
-    const existingCustomer = await this.repository.FindCustomerById({ id });
+    const user = await this.repository.FindUserById({ id });
 
-    if (existingCustomer) {
-      return FormatData(existingCustomer);
+    if (user) {
+      return FormatData(user);
     }
     return FormatData({ msg: "Error" });
   }
 
-  async GetWishList(customerId) {
-    const wishListItems = await this.repository.Wishlist(customerId);
+  async GetWishList(userId) {
+    const wishListItems = await this.repository.Wishlist(userId);
     return FormatData(wishListItems);
   }
 
-  async AddToWishlist(customerId, product) {
+  async AddToWishlist(userId, product) {
     const wishlistResult = await this.repository.AddWishlistItem(
-      customerId,
+      userId,
       product
     );
     return FormatData(wishlistResult);
   }
 
-  async ManageCart(customerId, product, qty, isRemove) {
+  async ManageCart(userId, product, qty, isRemove) {
     const cartResult = await this.repository.AddCartItem(
-      customerId,
+      userId,
       product,
       qty,
       isRemove
@@ -110,16 +107,15 @@ class CustomerService {
     return FormatData(cartResult);
   }
 
-  async ManageOrder(customerId, order) {
+  async ManageOrder(userId, order) {
     const orderResult = await this.repository.AddOrderToProfile(
-      customerId,
+      userId,
       order
     );
     return FormatData(orderResult);
   }
 
   async SubscribeEvents(payload) {
-    console.log("Triggering.... Customer Events");
 
     payload = JSON.parse(payload);
     console.log(payload);
@@ -144,7 +140,7 @@ class CustomerService {
         this.ManageOrder(userId, order);
         break;
       case "TEST":
-        console.log("Customer service up and running man");
+        console.log("User service up and running man");
         break;
       default:
         break;
@@ -152,4 +148,4 @@ class CustomerService {
   }
 }
 
-module.exports = CustomerService;
+module.exports = UserService;

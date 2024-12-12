@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const { CreateChannel, SubscribeMessage } = require("./utils");
-const customerRoutes = require("./api/customer");
+const userRoutes = require("./api/user");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const print = console.log;
@@ -20,7 +20,7 @@ async function startApp() {
 
     const channel = await CreateChannel();
 
-    await customerRoutes(app, channel);
+    await userRoutes(app, channel);
 
     app.listen(8001, () => {
       console.log("Customer is Listening to Port 8001");

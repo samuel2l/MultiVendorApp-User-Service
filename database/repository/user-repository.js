@@ -1,21 +1,21 @@
 const Address = require("../models/Address");
-const Customer = require("../models/User");
+const User = require("../models/User");
 
-class CustomerRepository {
-  async CreateCustomer({ email, password, phone, role }) {
-    const customer = new Customer({
+class UserRepository {
+  async CreateUser({ email, password, phone, role }) {
+    const user = new User({
       email,
       password,
       phone,
       role,
     });
 
-    const newCustomer = await customer.save();
-    return newCustomer;
+    const newUser = await user.save();
+    return newUser;
   }
 
   async CreateAddress({ _id, street, postalCode, city, country }) {
-    const profile = await Customer.findById(_id);
+    const profile = await User.findById(_id);
 
     if (profile) {
       const newAddress = new Address({
@@ -33,25 +33,25 @@ class CustomerRepository {
     return await profile.save();
   }
 
-  async FindCustomer({ email }) {
-    const existingCustomer = await Customer.findOne({ email: email });
-    return existingCustomer;
+  async FindUser({ email }) {
+    const existingUser = await User.findOne({ email });
+    return existingUser;
   }
 
-  async FindCustomerById({ id }) {
-    const existingCustomer = await Customer.findById(id).populate("address");
+  async FindUserById({ id }) {
+    const existingUser = await User.findById(id).populate("address");
 
-    return existingCustomer;
+    return existingUser;
   }
 
-  async Wishlist(customerId) {
-    const profile = await Customer.findById(customerId);
+  async Wishlist(userId) {
+    const user = await User.findById(userId);
 
-    return profile.wishlist;
+    return user.wishlist;
   }
 
   async AddWishlistItem(
-    customerId,
+    userId,
     { _id, name, desc, price, available, banner }
   ) {
     const product = {
@@ -63,7 +63,7 @@ class CustomerRepository {
       banner,
     };
 
-    const profile = await Customer.findById(customerId);
+    const profile = await User.findById(userId);
 
     if (profile) {
       let wishlist = profile.wishlist;
@@ -93,8 +93,8 @@ class CustomerRepository {
     return profileResult.wishlist;
   }
 
-  async AddCartItem(customerId, { _id, name, price, banner }, qty, isRemove) {
-    const profile = await Customer.findById(customerId);
+  async AddCartItem(userId, { _id, name, price, banner }, qty, isRemove) {
+    const profile = await User.findById(userId);
 
     if (profile) {
       const cartItem = {
@@ -132,8 +132,8 @@ class CustomerRepository {
     throw new Error("Unable to add to cart!");
   }
 
-  async AddOrderToProfile(customerId, order) {
-    const profile = await Customer.findById(customerId);
+  async AddOrderToProfile(userId, order) {
+    const profile = await User.findById(userId);
 
     if (profile) {
       if (profile.orders == undefined) {
@@ -152,4 +152,4 @@ class CustomerRepository {
   }
 }
 
-module.exports = CustomerRepository;
+module.exports = UserRepository;

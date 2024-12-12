@@ -1,9 +1,9 @@
-const CustomerService = require("../services/customer-service");
-const auth = require("./middlewares/auth");
+const UserService = require("../services/user-service");
+const auth = require("./middleware/auth");
 const { SubscribeMessage } = require("../utils");
 
-customerRoutes = (app, channel) => {
-  const service = new CustomerService();
+userRoutes = (app, channel) => {
+  const service = new UserService();
 
   SubscribeMessage(channel, service);
 
@@ -67,4 +67,4 @@ customerRoutes = (app, channel) => {
   });
 };
 
-module.exports = customerRoutes;
+module.exports = userRoutes;
