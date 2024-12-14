@@ -1,4 +1,4 @@
-const Address = require("../models/Address");
+const Profile = require("../models/Profile");
 const User = require("../models/User");
 
 class UserRepository {
@@ -14,23 +14,50 @@ class UserRepository {
     return newUser;
   }
 
-  async CreateAddress({ _id, street, postalCode, city, country }) {
-    const profile = await User.findById(_id);
+  async CreateProfile({ _id,name,gender, street, postalCode, city, country }) {
+    const user = await User.findById(_id);
 
-    if (profile) {
-      const newAddress = new Address({
+    if (user) {
+      const profile = new Profile({
+        name,
+        gender,
         street,
         postalCode,
         city,
         country,
       });
 
-      await newAddress.save();
-
-      profile.address.push(newAddress);
+      const newProfile=await profile.save();
+      
+      user.profile=newProfile;
+    
     }
 
-    return await profile.save();
+    return await user.save();
+  }
+
+  async EditProfile({ _id,name,gender, street, postalCode, city, country }) {
+    const user = await User.findById(_id);
+
+    if (user && user.profile) {
+      const profile = await Profile.findById(user.profile._id)
+      console.log('PROFILEEEE',profile)
+      profile.name=name
+      profile.gender=gender
+      profile.street=street
+      profile.postalCode=postalCode
+      profile.city=city
+      profile.country=country
+      await profile.save()
+
+
+      
+    }
+
+    return user.populate('profile')
+    
+
+    
   }
 
   async FindUser({ email }) {
@@ -39,16 +66,11 @@ class UserRepository {
   }
 
   async FindUserById({ id }) {
-    const existingUser = await User.findById(id).populate("address");
+    const existingUser = await User.findById(id).populate("profile");
 
     return existingUser;
   }
 
-  async Wishlist(userId) {
-    const user = await User.findById(userId);
-
-    return user.wishlist;
-  }
 
   async AddWishlistItem(
     userId,
@@ -94,15 +116,15 @@ class UserRepository {
   }
 
   async AddCartItem(userId, { _id, name, price, banner }, qty, isRemove) {
-    const profile = await User.findById(userId);
+    const user = await User.findById(userId);
 
-    if (profile) {
+    if (user) {
       const cartItem = {
         product: { _id, name, price, banner },
-        unit: qty,
+        stock: qty,
       };
 
-      let cartItems = profile.cart;
+      let cartItems = user.cart;
 
       if (cartItems.length > 0) {
         let isExist = false;
@@ -111,7 +133,7 @@ class UserRepository {
             if (isRemove) {
               cartItems.splice(cartItems.indexOf(item), 1);
             } else {
-              item.unit = qty;
+              item.stock = qty;
             }
             isExist = true;
           }
@@ -124,9 +146,9 @@ class UserRepository {
         cartItems.push(cartItem);
       }
 
-      profile.cart = cartItems;
+      user.cart = cartItems;
 
-      return await profile.save();
+      return await user.save();
     }
 
     throw new Error("Unable to add to cart!");

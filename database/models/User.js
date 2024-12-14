@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema(
       enum: ["Seller", "Buyer"],
       required: true,
     },
-    address: [{ type: mongoose.Schema.Types.ObjectId, ref: "address"}],
+    profile: { type: mongoose.Schema.Types.ObjectId, ref: "profile"},
     cart: [
       {
         //reason the cart is not a reference to the product is cos each service should be autonomous and independent. If the Customer Service references the Product model directly, it creates a hard dependency on the Product Service.
@@ -30,10 +30,10 @@ const userSchema = new mongoose.Schema(
         product: {
           _id: { type: String, require: true },
           name: { type: String },
-          banner: { type: String },
+          img: { type: String },
           price: { type: Number },
         },
-        unit: { type: Number, require: true },
+        stock: { type: Number, require: true },
       },
     ],
     wishlist: [

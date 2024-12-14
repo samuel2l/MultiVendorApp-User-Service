@@ -26,28 +26,50 @@ userRoutes = (app, channel) => {
     res.json(data);
   });
 
-  app.post("/address", auth, async (req, res, next) => {
+  app.post("/profile", auth, async (req, res, next) => {
     const { _id } = req.user;
 
-    const { street, postalCode, city, country } = req.body;
+    const { name,gender,street, postalCode, city, country } = req.body;
 
-    const { data } = await service.AddNewAddress(_id, {
+    const { data } = await service.AddProfile(_id, {
+      name,
+      gender,
       street,
       postalCode,
       city,
       country,
     });
 
+
+    res.json(data);
+  });
+
+  app.put("/profile", auth, async (req, res, next) => {
+    const { _id } = req.user;
+
+    const { name,gender,street, postalCode, city, country } = req.body;
+
+    const { data } = await service.EditProfile(_id, {
+      name,
+      gender,
+      street,
+      postalCode,
+      city,
+      country,
+    });
+
+    
     res.json(data);
   });
 
   app.get("/profile", auth, async (req, res, next) => {
-    console.log("IN PROFILE ROUTE", req.user);
 
     const { _id } = req.user;
     const { data } = await service.GetProfile({ _id });
     res.json(data);
   });
+
+
 
   app.get("/cart", auth, async (req, res, next) => {
     const { _id } = req.user;
@@ -62,8 +84,9 @@ userRoutes = (app, channel) => {
     return res.status(200).json(data);
   });
 
-  app.get("/", auth, (req, res, next) => {
-    return res.status(200).json({ msg: req.user });
+  app.get("/", auth, async (req, res, next) => {
+    const {user}=await service.GetUser(req.user._id)
+    return res.status(200).json(user);
   });
 };
 

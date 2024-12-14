@@ -51,22 +51,47 @@ class UserService {
     return FormatData({ id: user._id, token, role });
   }
 
-  async AddNewAddress(_id, userInputs) {
-    const { street, postalCode, city, country } = userInputs;
+  async AddProfile(_id, profileData) {
+    const { name,gender,street, postalCode, city, country } = profileData;
 
-    const addressResult = await this.repository.CreateAddress({
+    const profile = await this.repository.CreateProfile({
       _id,
+      name,
+      gender,
       street,
       postalCode,
       city,
       country,
     });
 
-    return FormatData(addressResult);
+    return FormatData(profile);
   }
+
 
   async GetProfile(id) {
     const user = await this.repository.FindUserById({ id });
+    console.log(user)
+    return FormatData(user.profile);
+  }
+
+    async EditProfile(_id, profileData) {
+    const { name,gender,street, postalCode, city, country } = profileData;
+
+    const updatedProfile = await this.repository.EditProfile({
+      _id,
+      name,
+      gender,
+      street,
+      postalCode,
+      city,
+      country,
+    });
+
+    return FormatData(updatedProfile);
+  }
+
+  async GetUser(id) {
+    const user = await FindById(id).populate('profile');
     return FormatData(user);
   }
 
@@ -75,26 +100,18 @@ class UserService {
     return FormatData(user.cart);
   }
 
-  async GetShoppingDetails(id) {
+
+  async GetWishList(id) {
     const user = await this.repository.FindUserById({ id });
-
-    if (user) {
-      return FormatData(user);
-    }
-    return FormatData({ msg: "Error" });
-  }
-
-  async GetWishList(userId) {
-    const wishListItems = await this.repository.Wishlist(userId);
-    return FormatData(wishListItems);
+    return FormatData(user.wishlist);
   }
 
   async AddToWishlist(userId, product) {
-    const wishlistResult = await this.repository.AddWishlistItem(
+    const wishlistItem = await this.repository.AddWishlistItem(
       userId,
       product
     );
-    return FormatData(wishlistResult);
+    return FormatData(wishlistItem);
   }
 
   async ManageCart(userId, product, qty, isRemove) {
