@@ -141,6 +141,7 @@ class UserService {
     console.log("EVENT AND DATA", event, data);
 
     const { userId, product, order, qty } = data;
+    console.log(userId, product,'PRODUCT orderrr?????????', order, qty)
 
     switch (event) {
       case "ADD_TO_WISHLIST":
