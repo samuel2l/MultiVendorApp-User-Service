@@ -5,7 +5,7 @@ const userRoutes = require("./api/user");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const print = console.log;
-const port = process.env.PORT || 4000
+const port = process.env.PORT || 8001
 dotenv.config(); // Load environment variables from .env file
 
 const app = express();
@@ -23,7 +23,7 @@ async function startApp() {
     await userRoutes(app, channel);
 
     app.listen(port, () => {
-      console.log(`Customer is Listening to Port 8001`);
+      console.log(`Customer is Listening to Port ${port}`);
     });
   } catch (err) {
     console.log("Failed to start app:", err);
