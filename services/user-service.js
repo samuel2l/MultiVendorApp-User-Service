@@ -6,6 +6,8 @@ const {
   ValidatePassword,
 } = require("../utils");
 
+const User = require("../database/models/User");
+
 class UserService {
   constructor() {
     this.repository = new UserRepository();
@@ -52,7 +54,7 @@ class UserService {
   }
 
   async AddProfile(_id, profileData) {
-    const { name,gender,street, postalCode, city, country } = profileData;
+    const { name, gender, street, postalCode, city, country } = profileData;
 
     const profile = await this.repository.CreateProfile({
       _id,
@@ -67,15 +69,14 @@ class UserService {
     return FormatData(profile);
   }
 
-
   async GetProfile(id) {
     const user = await this.repository.FindUserById({ id });
-    console.log(user)
+    console.log(user);
     return FormatData(user.profile);
   }
 
-    async EditProfile(_id, profileData) {
-    const { name,gender,street, postalCode, city, country } = profileData;
+  async EditProfile(_id, profileData) {
+    const { name, gender, street, postalCode, city, country } = profileData;
 
     const updatedProfile = await this.repository.EditProfile({
       _id,
@@ -91,7 +92,8 @@ class UserService {
   }
 
   async GetUser(id) {
-    const user = await FindById(id).populate('profile');
+    // const user = await findById(id).populate('profile');
+    const user = await User.findById(id).populate("profile");
     return FormatData(user);
   }
 
@@ -100,17 +102,13 @@ class UserService {
     return FormatData(user.cart);
   }
 
-
   async GetWishList(id) {
     const user = await this.repository.FindUserById({ id });
     return FormatData(user.wishlist);
   }
 
   async AddToWishlist(userId, product) {
-    const wishlistItem = await this.repository.AddWishlistItem(
-      userId,
-      product
-    );
+    const wishlistItem = await this.repository.AddWishlistItem(userId, product);
     return FormatData(wishlistItem);
   }
 
@@ -125,15 +123,11 @@ class UserService {
   }
 
   async ManageOrder(userId, order) {
-    const orderResult = await this.repository.AddOrderToProfile(
-      userId,
-      order
-    );
+    const orderResult = await this.repository.AddOrderToProfile(userId, order);
     return FormatData(orderResult);
   }
 
   async SubscribeEvents(payload) {
-
     payload = JSON.parse(payload);
     console.log(payload);
 
@@ -141,7 +135,7 @@ class UserService {
     console.log("EVENT AND DATA", event, data);
 
     const { userId, product, order, qty } = data;
-    console.log(userId, product,'PRODUCT orderrr?????????', order, qty)
+    console.log(userId, product, "PRODUCT orderrr?????????", order, qty);
 
     switch (event) {
       case "ADD_TO_WISHLIST":
