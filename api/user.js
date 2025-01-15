@@ -85,7 +85,7 @@ userRoutes = (app, channel) => {
   });
 
   app.get("/", auth, async (req, res, next) => {
-    const {user}=await service.GetUser(req.user._id)
+    const user=await service.GetUser(req.user._id)
     return res.status(200).json(user);
   });
 };

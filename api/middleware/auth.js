@@ -1,5 +1,5 @@
 const { ValidateSignature } = require("../../utils");
-const Customer = require("../../database/models/User");
+
 module.exports = async (req, res, next) => {
   const isAuthorized = await ValidateSignature(req);
 

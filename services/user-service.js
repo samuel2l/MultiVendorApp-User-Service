@@ -92,9 +92,9 @@ class UserService {
   }
 
   async GetUser(id) {
-    // const user = await findById(id).populate('profile');
-    const user = await User.findById(id).populate("profile");
-    return FormatData(user);
+    const user = await User.findById(id);
+
+    return user;
   }
 
   async GetCart(id) {
