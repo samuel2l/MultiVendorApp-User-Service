@@ -115,13 +115,13 @@ class UserRepository {
     return profileResult.wishlist;
   }
 
-  async AddCartItem(userId, { _id, name, price, banner }, qty, isRemove) {
+  async AddCartItem(userId, { _id, name,desc,img,type,stock, price,available,seller }, qty, isRemove) {
     const user = await User.findById(userId);
-
+console.log("PARAMS",userId,qty)
     if (user) {
       const cartItem = {
-        product: { _id, name, price, banner },
-        stock: qty,
+        product: { _id, name,desc,img,type,stock, price,available,seller},
+        amount: qty,
       };
 
       let cartItems = user.cart;
@@ -133,7 +133,7 @@ class UserRepository {
             if (isRemove) {
               cartItems.splice(cartItems.indexOf(item), 1);
             } else {
-              item.stock = qty;
+              item.amount = qty;
             }
             isExist = true;
           }
@@ -145,6 +145,7 @@ class UserRepository {
       } else {
         cartItems.push(cartItem);
       }
+      console.log("INSIDE USER ADD CART FUNCTION", cartItems)
 
       user.cart = cartItems;
 

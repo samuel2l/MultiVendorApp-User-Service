@@ -30,10 +30,17 @@ const userSchema = new mongoose.Schema(
         product: {
           _id: { type: String, require: true },
           name: { type: String },
+          desc: { type: String,default:'' },          
           img: { type: String },
+          type: { type: String ,default:''},
+          stock: { type: String ,default:''},
           price: { type: Number },
+          available: { type: Boolean ,default:true},
+
+          seller: { type: String ,default:''},
+          
         },
-        stock: { type: Number, require: true },
+        amount: { type: Number, require: true },
       },
     ],
     wishlist: [
