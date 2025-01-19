@@ -5,7 +5,7 @@ const {
   GenerateSignature,
   ValidatePassword,
 } = require("../utils");
-
+const print=console.log
 const User = require("../database/models/User");
 
 class UserService {
@@ -121,6 +121,20 @@ class UserService {
     );
     return FormatData(cartResult);
   }
+  async EditWishlist(userId, product, qty, isRemove) {
+      const wishlistResult = await this.repository.AddWishlistItem(
+        userId,
+        product,
+        qty,
+        isRemove
+      );
+      //
+      print("operation doneeee")
+      print("result",wishlistResult)
+      return FormatData(wishlistResult);
+  
+
+  }
 
   async ManageOrder(userId, order) {
     const orderResult = await this.repository.AddOrderToProfile(userId, order);
@@ -134,27 +148,48 @@ class UserService {
     const { event, data } = payload;
     console.log("EVENT AND DATA", event, data);
     const { userId, product, order, qty } = data;
-    const { uId, prod, ord, qt } = data;
     
     console.log(userId, product, "PRODUCT orderrr?????????", order, qty);
 
     switch (event) {
       case "ADD_TO_WISHLIST":
+        {
+          const {userId,product,amount}=data
+          print("IN THE CASESSSSS ",userId,product,amount)
+          
+          await this.EditWishlist(userId, product, amount, false)
+          break
+  
+        }
+
+
       case "REMOVE_FROM_WISHLIST":
-        this.AddToWishlist(userId, product);
-        break;
+        {
+          const {userId,product,amount}=data
+
+
+          await this.EditWishlist(userId, product, amount, true)
+          break;
+  
+        }
       case "ADD_TO_CART":
+{
+  const {userId,product,amount}=data
+  await this.ManageCart(userId, product, amount, false);
+  break;
+
+}
+      case "REMOVE_FROM_CART":{
         const {userId,product,amount}=data
-        this.ManageCart(userId, product, amount, false);
-        break;
-      case "REMOVE_FROM_CART":
+        await this.ManageCart(userId, product, amount, true);
         
-        this.ManageCart(userId, product, qty, true);
+      }
+        
         break;
       case "CREATE_ORDER":
         console.log("in create order event")
         console.log(data.userId,order)
-        this.ManageOrder(data.userId, order);
+        await this.ManageOrder(data.userId, order);
         break;
       case "TEST":
         console.log("User service up and running man");

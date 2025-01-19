@@ -43,14 +43,23 @@ const userSchema = new mongoose.Schema(
         amount: { type: Number, require: true },
       },
     ],
-    wishlist: [
+    wishlist:  [
       {
-        _id: { type: String, require: true },
-        name: { type: String },
-        description: { type: String },
-        banner: { type: String },
-        avalable: { type: Boolean },
-        price: { type: Number },
+
+        product: {
+          _id: { type: String, require: true },
+          name: { type: String },
+          desc: { type: String,default:'' },          
+          img: { type: String },
+          type: { type: String ,default:''},
+          stock: { type: String ,default:''},
+          price: { type: Number },
+          available: { type: Boolean ,default:true},
+
+          seller: { type: String ,default:''},
+          
+        },
+        amount: { type: Number, require: true },
       },
     ],
     orders: [

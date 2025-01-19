@@ -72,87 +72,88 @@ class UserRepository {
   }
 
 
-  async AddWishlistItem(
-    userId,
-    { _id, name, desc, price, available, banner }
-  ) {
-    const product = {
-      _id,
-      name,
-      desc,
-      price,
-      available,
-      banner,
+  async AddWishlistItem(userId, { _id, name,desc,img,type,stock, price,available,seller }, qty, isRemove) {
+    const user = await User.findById(userId);
+console.log("PARAMS",userId,qty)
+console.log(user)
+  if (user) {
+    const wishlistItem = {
+      product: { _id, name,desc,img,type,stock, price,available,seller},
+      amount: qty,
     };
+    console.log("current user in add iwhslist item ",user.wishlist)
 
-    const profile = await User.findById(userId);
+    let wishlistItems = user.wishlist;
 
-    if (profile) {
-      let wishlist = profile.wishlist;
-
-      if (wishlist.length > 0) {
-        let isExist = false;
-        wishlist.map((item) => {
-          if (item._id.toString() === product._id.toString()) {
-            const index = wishlist.indexOf(item);
-            wishlist.splice(index, 1);
-            isExist = true;
+    if (wishlistItems.length > 0) {
+      let isExist = false;
+      wishlistItems.map((item) => {
+        if (item.product._id.toString() === _id.toString()) {
+          if (isRemove) {
+            wishlistItems.splice(wishlistItems.indexOf(item), 1);
+          } else {
+            item.amount = qty;
           }
-        });
-
-        if (!isExist) {
-          wishlist.push(product);
+          isExist = true;
         }
-      } else {
-        wishlist.push(product);
+      });
+
+      if (!isExist) {
+        wishlistItems.push(wishlistItem);
       }
-
-      profile.wishlist = wishlist;
+    } else {
+      wishlistItems.push(wishlistItem);
     }
+    //i
+    console.log("INSIDE USER ADD WISHLIST FUNCTION", wishlistItems)
 
-    const profileResult = await profile.save();
+    user.wishlist = wishlistItems;
+    const updatedUser=    await user.save()
 
-    return profileResult.wishlist;
+
+    return updatedUser
+
+  }    
   }
 
   async AddCartItem(userId, { _id, name,desc,img,type,stock, price,available,seller }, qty, isRemove) {
     const user = await User.findById(userId);
 console.log("PARAMS",userId,qty)
-    if (user) {
-      const cartItem = {
-        product: { _id, name,desc,img,type,stock, price,available,seller},
-        amount: qty,
-      };
 
-      let cartItems = user.cart;
+  if (user) {
+    const cartItem = {
+      product: { _id, name,desc,img,type,stock, price,available,seller},
+      amount: qty,
+    };
 
-      if (cartItems.length > 0) {
-        let isExist = false;
-        cartItems.map((item) => {
-          if (item.product._id.toString() === _id.toString()) {
-            if (isRemove) {
-              cartItems.splice(cartItems.indexOf(item), 1);
-            } else {
-              item.amount = qty;
-            }
-            isExist = true;
+    let cartItems = user.cart;
+
+    if (cartItems.length > 0) {
+      let isExist = false;
+      cartItems.map((item) => {
+        if (item.product._id.toString() === _id.toString()) {
+          if (isRemove) {
+            cartItems.splice(cartItems.indexOf(item), 1);
+          } else {
+            item.amount = qty;
           }
-        });
-
-        if (!isExist) {
-          cartItems.push(cartItem);
+          isExist = true;
         }
-      } else {
+      });
+
+      if (!isExist) {
         cartItems.push(cartItem);
       }
-      console.log("INSIDE USER ADD CART FUNCTION", cartItems)
-
-      user.cart = cartItems;
-
-      return await user.save();
+    } else {
+      cartItems.push(cartItem);
     }
+    console.log("INSIDE USER ADD CART FUNCTION", cartItems)
 
-    throw new Error("Unable to add to cart!");
+    user.cart = cartItems;
+
+    return await user.save();
+
+  }    
   }
 
   async AddOrderToProfile(userId, order) {
