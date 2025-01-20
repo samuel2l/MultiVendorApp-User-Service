@@ -23,6 +23,7 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
     profile: { type: mongoose.Schema.Types.ObjectId, ref: "profile"},
+    
     cart: [
       {
         //reason the cart is not a reference to the product is cos each service should be autonomous and independent. If the Customer Service references the Product model directly, it creates a hard dependency on the Product Service.
@@ -69,6 +70,7 @@ const userSchema = new mongoose.Schema(
         date: { type: Date, default: Date.now() },
       },
     ],
+
   },
   {
     toJSON: {

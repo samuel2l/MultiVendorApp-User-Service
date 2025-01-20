@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const print = console.log;
 const port = process.env.PORT || 8001
-dotenv.config(); // Load environment variables from .env file
+dotenv.config();
 
 const app = express();
 app.use(express.json());

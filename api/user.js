@@ -1,12 +1,19 @@
 const UserService = require("../services/user-service");
 const auth = require("./middleware/auth");
 const { SubscribeMessage } = require("../utils");
-
+const User = require("../database/models/User");
+let print=console.log
 userRoutes = (app, channel) => {
   const service = new UserService();
 
   SubscribeMessage(channel, service);
 
+
+  app.get("/seller-profile/:id",async (req,res)=>{
+    const user=await User.findById(req.params.id)
+    const populateProfile= await user.populate('profile')
+    res.status(200).json(populateProfile.profile)
+  })
   app.post("/signup", async (req, res, next) => {
     try {
       const { email, password, phone, role } = req.body;
@@ -26,31 +33,14 @@ userRoutes = (app, channel) => {
     res.json(data);
   });
 
-  app.post("/profile", auth, async (req, res, next) => {
-    const { _id } = req.user;
-
-    const { name,gender,street, postalCode, city, country } = req.body;
-
-    const { data } = await service.AddProfile(_id, {
-      name,
-      gender,
-      street,
-      postalCode,
-      city,
-      country,
-    });
-
-
-    res.json(data);
-  });
-
   app.put("/profile", auth, async (req, res, next) => {
-    const { _id } = req.user;
+try{    const { _id } = req.user;
 
-    const { name,gender,street, postalCode, city, country } = req.body;
+    const { name,img,gender,street, postalCode, city, country } = req.body;
 
     const { data } = await service.EditProfile(_id, {
       name,
+      img,
       gender,
       street,
       postalCode,
@@ -59,35 +49,20 @@ userRoutes = (app, channel) => {
     });
 
     
-    res.json(data);
-  });
+    res.status(200).json(data);
+  }catch(e){
+    console.log(e)
+  }
+  }
 
-  app.get("/profile", auth, async (req, res, next) => {
+);
 
-    const { _id } = req.user;
-    const { data } = await service.GetProfile({ _id });
-    res.json(data);
-  });
-
-
-
-  app.get("/cart", auth, async (req, res, next) => {
-    const { _id } = req.user;
-    const { data } = await service.GetCart(_id);
-
-    return res.json(data);
-  });
-
-  app.get("/wishlist", auth, async (req, res, next) => {
-    const { _id } = req.user;
-    const { data } = await service.GetWishList(_id);
-    return res.status(200).json(data);
-  });
 
   app.get("/", auth, async (req, res, next) => {
     const user=await service.GetUser(req.user._id)
     return res.status(200).json(user);
   });
+
 };
 
 module.exports = userRoutes;

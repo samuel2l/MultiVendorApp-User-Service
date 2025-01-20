@@ -1,12 +1,15 @@
 const UserRepository = require("../database/repository/user-repository");
+const Profile = require("../database/models/Profile");
 const {
   FormatData,
   GeneratePassword,
   GenerateSignature,
   ValidatePassword,
 } = require("../utils");
-const print=console.log
+const print = console.log;
 const User = require("../database/models/User");
+const {CreateChannel, PublishMessage } = require("../utils");
+
 
 class UserService {
   constructor() {
@@ -35,52 +38,62 @@ class UserService {
 
   async SignUp(userInputs) {
     const { email, password, phone, role } = userInputs;
+    print("USER INPUTS", email, password, phone, role);
 
     let userPassword = await GeneratePassword(password);
 
-    const user = await this.repository.CreateUser({
+    const newUser = new User({
       email,
       password: userPassword,
       phone,
       role,
     });
 
+    const savedUser = await newUser.save();
+    print("SAVED USER", savedUser);
+
+    const newProfile = new Profile({
+      userId: savedUser._id,
+      name: "John Doe",
+      img: "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg",
+      gender: "Male",
+      street: "Prime wood road",
+      postalCode: "64673",
+      city: "Accra",
+      country: "Ghana",
+    });
+
+    const savedProfile = await newProfile.save();
+    savedUser.profile = savedProfile._id;
+    await savedUser.save();
+
+    console.log("User and profile created successfully!");
+    console.log("User:", savedUser);
+    console.log("Profile:", savedProfile);
+
     const token = await GenerateSignature({
       email: email,
-      _id: user._id,
+      _id: savedUser._id,
       role: role,
     });
-    return FormatData({ id: user._id, token, role });
-  }
-
-  async AddProfile(_id, profileData) {
-    const { name, gender, street, postalCode, city, country } = profileData;
-
-    const profile = await this.repository.CreateProfile({
-      _id,
-      name,
-      gender,
-      street,
-      postalCode,
-      city,
-      country,
-    });
-
-    return FormatData(profile);
-  }
-
-  async GetProfile(id) {
-    const user = await this.repository.FindUserById({ id });
-    console.log(user);
-    return FormatData(user.profile);
+    return FormatData({ id: savedUser._id, token, role });
   }
 
   async EditProfile(_id, profileData) {
-    const { name, gender, street, postalCode, city, country } = profileData;
+    const {
+      name = "untouched name",
+      img = "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg",
+      gender="untouched gender",
+      street='untouched street',
+      postalCode='untouched postcode',
+      city='untouched city',
+      country='untouched country',
+    } = profileData;
 
     const updatedProfile = await this.repository.EditProfile({
       _id,
       name,
+      img,
       gender,
       street,
       postalCode,
@@ -92,19 +105,9 @@ class UserService {
   }
 
   async GetUser(id) {
-    const user = await User.findById(id);
+    const user = await User.findById(id).populate("profile");
 
     return user;
-  }
-
-  async GetCart(id) {
-    const user = await this.repository.FindUserById({ id });
-    return FormatData(user.cart);
-  }
-
-  async GetWishList(id) {
-    const user = await this.repository.FindUserById({ id });
-    return FormatData(user.wishlist);
   }
 
   async AddToWishlist(userId, product) {
@@ -122,18 +125,16 @@ class UserService {
     return FormatData(cartResult);
   }
   async EditWishlist(userId, product, qty, isRemove) {
-      const wishlistResult = await this.repository.AddWishlistItem(
-        userId,
-        product,
-        qty,
-        isRemove
-      );
-      //
-      print("operation doneeee")
-      print("result",wishlistResult)
-      return FormatData(wishlistResult);
-  
-
+    const wishlistResult = await this.repository.AddWishlistItem(
+      userId,
+      product,
+      qty,
+      isRemove
+    );
+    //
+    print("operation doneeee");
+    print("result", wishlistResult);
+    return FormatData(wishlistResult);
   }
 
   async ManageOrder(userId, order) {
@@ -141,58 +142,69 @@ class UserService {
     return FormatData(orderResult);
   }
 
+  async GetSellerId(id){
+   const seller=await User.findById(id)
+   print("GOTTEN SELLER",seller.profile)
+   const channel = await CreateChannel();
+
+   PublishMessage(
+    channel,
+    process.env.PRODUCT_BINDING_KEY,
+    JSON.stringify({"event":"RECEIVE_SELLER_PROFILE",profile:seller.profile})
+  );
+
+  }
+
   async SubscribeEvents(payload) {
     payload = JSON.parse(payload);
     console.log(payload);
 
-    const { event, data } = payload;
+    const { event, data={"dummy":8989} } = payload;
     console.log("EVENT AND DATA", event, data);
     const { userId, product, order, qty } = data;
-    
+
     console.log(userId, product, "PRODUCT orderrr?????????", order, qty);
 
     switch (event) {
-      case "ADD_TO_WISHLIST":
-        {
-          const {userId,product,amount}=data
-          print("IN THE CASESSSSS ",userId,product,amount)
-          
-          await this.EditWishlist(userId, product, amount, false)
-          break
-  
-        }
+      case "ADD_TO_WISHLIST": {
+        const { userId, product, amount } = data;
+        print("IN THE CASESSSSS ", userId, product, amount);
 
-
-      case "REMOVE_FROM_WISHLIST":
-        {
-          const {userId,product,amount}=data
-
-
-          await this.EditWishlist(userId, product, amount, true)
-          break;
-  
-        }
-      case "ADD_TO_CART":
-{
-  const {userId,product,amount}=data
-  await this.ManageCart(userId, product, amount, false);
-  break;
-
-}
-      case "REMOVE_FROM_CART":{
-        const {userId,product,amount}=data
-        await this.ManageCart(userId, product, amount, true);
-        
+        await this.EditWishlist(userId, product, amount, false);
+        break;
       }
-        
+
+      case "REMOVE_FROM_WISHLIST": {
+        const { userId, product, amount } = data;
+
+        await this.EditWishlist(userId, product, amount, true);
+        break;
+      }
+      case "ADD_TO_CART": {
+        const { userId, product, amount } = data;
+        await this.ManageCart(userId, product, amount, false);
+        break;
+      }
+      case "REMOVE_FROM_CART":
+        {
+          const { userId, product, amount } = data;
+          await this.ManageCart(userId, product, amount, true);
+        }
+
         break;
       case "CREATE_ORDER":
-        console.log("in create order event")
-        console.log(data.userId,order)
+        console.log("in create order event");
+        console.log(data.userId, order);
         await this.ManageOrder(data.userId, order);
         break;
-      case "TEST":
-        console.log("User service up and running man");
+      case "GET_SELLER_ID":{
+        print("INSIDE GET SELLER ID")
+                const {event,id}=payload
+        print(id)
+        await this.GetSellerId(id)
+
+
+      }
         break;
       default:
         break;

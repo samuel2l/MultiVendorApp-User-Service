@@ -1,76 +1,61 @@
 const Profile = require("../models/Profile");
 const User = require("../models/User");
-
+let print=console.log
 class UserRepository {
-  async CreateUser({ email, password, phone, role }) {
+  async CreateUser({ email, password, phone, role,profileId }) {
     const user = new User({
       email,
       password,
       phone,
       role,
+      profileId
+
+      
     });
 
     const newUser = await user.save();
     return newUser;
   }
 
-  async CreateProfile({ _id,name,gender, street, postalCode, city, country }) {
-    const user = await User.findById(_id);
+  async EditProfile({ _id,name,img,gender, street, postalCode, city, country }) {
+    const profile = await Profile.find({userId:_id});
+   print("PROFILEEE",profile[0])
+    if(img!=='https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg'){
+      profile[0].img=img
 
-    if (user) {
-      const profile = new Profile({
-        name,
-        gender,
-        street,
-        postalCode,
-        city,
-        country,
-      });
-
-      const newProfile=await profile.save();
-      
-      user.profile=newProfile;
-    
     }
+    if(name!=='untouched name'){
+      profile[0].name=name
 
-    return await user.save();
-  }
-
-  async EditProfile({ _id,name,gender, street, postalCode, city, country }) {
-    const user = await User.findById(_id);
-
-    if (user && user.profile) {
-      const profile = await Profile.findById(user.profile._id)
-      console.log('PROFILEEEE',profile)
-      profile.name=name
-      profile.gender=gender
-      profile.street=street
-      profile.postalCode=postalCode
-      profile.city=city
-      profile.country=country
-      await profile.save()
-
-
-      
     }
-
-    return user.populate('profile')
+    if(gender!=='untouched gender'){
+      profile[0].gender=gender
+    }
+      
+      if(street!=='untouched street'){
+        profile[0].street=street
+      }
+      if(postalCode!=='untouched postcode'){
+        profile[0].postalCode=postalCode
+      }
+      if(city!=='untouched city'){
+        profile[0].city=city
+      }
+      if(country!=='untouched country'){
+        profile[0].country=country
+      }
+      
+      
+      await profile[0].save()
     
 
-    
+    return profile[0]    
   }
 
   async FindUser({ email }) {
     const existingUser = await User.findOne({ email });
     return existingUser;
   }
-
-  async FindUserById({ id }) {
-    const existingUser = await User.findById(id).populate("profile");
-
-    return existingUser;
-  }
-
 
   async AddWishlistItem(userId, { _id, name,desc,img,type,stock, price,available,seller }, qty, isRemove) {
     const user = await User.findById(userId);
@@ -104,7 +89,6 @@ console.log(user)
     } else {
       wishlistItems.push(wishlistItem);
     }
-    //i
     console.log("INSIDE USER ADD WISHLIST FUNCTION", wishlistItems)
 
     user.wishlist = wishlistItems;
@@ -156,24 +140,6 @@ console.log("PARAMS",userId,qty)
   }    
   }
 
-  async AddOrderToProfile(userId, order) {
-    const profile = await User.findById(userId);
-
-    if (profile) {
-      if (profile.orders == undefined) {
-        profile.orders = [];
-      }
-      profile.orders.push(order);
-
-      profile.cart = [];
-
-      const profileResult = await profile.save();
-
-      return profileResult;
-    }
-
-    throw new Error("Unable to add to order!");
-  }
 }
 
 module.exports = UserRepository;
