@@ -54,7 +54,7 @@ class UserService {
 
     const newProfile = new Profile({
       userId: savedUser._id,
-      name: "John Doe",
+      name: "New user",
       img: "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg",
       gender: "Male",
       street: "Prime wood road",
@@ -115,7 +115,7 @@ class UserService {
     return FormatData(wishlistItem);
   }
 
-  async ManageCart(userId, product, qty, isRemove) {
+  async ManageCart(userId, product, qty, isRemove=false) {
     const cartResult = await this.repository.AddCartItem(
       userId,
       product,
@@ -131,15 +131,16 @@ class UserService {
       qty,
       isRemove
     );
-    //
+    
     print("operation doneeee");
     print("result", wishlistResult);
+    print("result", wishlistResult.wishlist[0]);
     return FormatData(wishlistResult);
   }
 
   async ManageOrder(userId, order) {
-    const orderResult = await this.repository.AddOrderToProfile(userId, order);
-    return FormatData(orderResult);
+    // const orderResult = await this.repository.AddOrderToProfile(userId, order);
+    return FormatData([]);
   }
 
   async GetSellerId(id){
@@ -167,10 +168,10 @@ class UserService {
 
     switch (event) {
       case "ADD_TO_WISHLIST": {
-        const { userId, product, amount } = data;
-        print("IN THE CASESSSSS ", userId, product, amount);
-
-        await this.EditWishlist(userId, product, amount, false);
+        const { userId, product, amount,isRemove } = data;
+        print("see the data",data)
+        print("IN ADD TO WISHLIST EVENT?????????",userId,product,amount,isRemove)
+        await this.EditWishlist(userId, product, amount, isRemove);
         break;
       }
 
@@ -181,8 +182,9 @@ class UserService {
         break;
       }
       case "ADD_TO_CART": {
-        const { userId, product, amount } = data;
-        await this.ManageCart(userId, product, amount, false);
+        const { userId, product, amount,isRemove } = data;
+        print("IN ADD TO CART EVENT?????????",userId,product,amount,isRemove)
+        await this.ManageCart(userId, product, amount, isRemove);
         break;
       }
       case "REMOVE_FROM_CART":
@@ -197,15 +199,7 @@ class UserService {
         console.log(data.userId, order);
         await this.ManageOrder(data.userId, order);
         break;
-      case "GET_SELLER_ID":{
-        print("INSIDE GET SELLER ID")
-                const {event,id}=payload
-        print(id)
-        await this.GetSellerId(id)
 
-
-      }
-        break;
       default:
         break;
     }
