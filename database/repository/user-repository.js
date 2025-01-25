@@ -24,6 +24,7 @@ class UserRepository {
     postalCode,
     city,
     country,
+    about
   }) {
     const profile = await Profile.find({ userId: _id });
     print("PROFILEEE", profile[0]);
@@ -51,6 +52,9 @@ class UserRepository {
     }
     if (country !== "untouched country") {
       profile[0].country = country;
+    }
+    if (about !== "untouched about") {
+      profile[0].about = about;
     }
 
     await profile[0].save();

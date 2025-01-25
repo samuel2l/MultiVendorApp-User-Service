@@ -43,6 +43,10 @@ const profileSchema = new mongoose.Schema({
         required:true
     
     },
+    about:{
+        type:String,
+        default:''
+    }
 
 
 },{timestamps:true});

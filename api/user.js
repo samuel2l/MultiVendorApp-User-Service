@@ -8,7 +8,7 @@ userRoutes = (app, channel) => {
 
   SubscribeMessage(channel, service);
 
-
+// ROUTE USED TO SEE PROFILE  OF A SELLER. LIKE WHEN YOU GO ON PRODUCT DETAILS YOU SHOULD BE ABLE TO SEE THE SELLER 
   app.get("/seller-profile/:id",async (req,res)=>{
     const user=await User.findById(req.params.id)
     const populateProfile= await user.populate('profile')
@@ -33,10 +33,12 @@ userRoutes = (app, channel) => {
     res.json(data);
   });
 
+  //EDIT ROFILE
+
   app.put("/profile", auth, async (req, res, next) => {
 try{    const { _id } = req.user;
 
-    const { name,img,gender,street, postalCode, city, country } = req.body;
+    const { name,img,gender,street, postalCode, city, country,about } = req.body;
 
     const { data } = await service.EditProfile(_id, {
       name,
@@ -46,6 +48,7 @@ try{    const { _id } = req.user;
       postalCode,
       city,
       country,
+      about
     });
 
     
