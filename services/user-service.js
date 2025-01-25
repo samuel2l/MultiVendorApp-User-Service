@@ -142,38 +142,97 @@ class UserService {
 
   async ManageOrder(userId, order) {
     const user = await User.findById(userId);
-    
 
     order.forEach((item) => {
-
       const orderItem = {
         _id: item.orderId,
         amount: item.amount,
       };
-  
+
       user.orders.push(orderItem);
-      print("is it even pshing?",user.orders)
+      print("is it even pshing?", user.orders);
     });
     return await user.save();
   }
 
-  async GetSellerId(id) {
-    const seller = await User.findById(id);
-    print("GOTTEN SELLER", seller.profile);
-    const channel = await CreateChannel();
+  async updateCart(productId, name, desc, img, type, stock, price, available) {
+    try {
+      const users = await User.find({ "cart.product._id": productId });
 
-    PublishMessage(
-      channel,
-      process.env.PRODUCT_BINDING_KEY,
-      JSON.stringify({
-        event: "RECEIVE_SELLER_PROFILE",
-        profile: seller.profile,
-      })
-    );
+      for (const user of users) {
+        user.cart = user.cart.map((item) => {
+          print("ITEM OF USER.CATT", item);
+          if (item.product._id === productId) {
+            return {
+              ...item,
+              product: {
+                ...item.product,
+                name: name,
+                desc: desc,
+                img: img,
+                type: type,
+                stock: stock,
+                price: price,
+                available: available,
+              },
+            };
+          }
+          return item;
+        });
+
+        await user.save();
+      }
+
+    } catch (error) {
+      console.error("Error updating product in carts:", error);
+    }
+  }
+  async updateWishlist(
+    productId,
+    name,
+    desc,
+    img,
+    type,
+    stock,
+    price,
+    available
+  ) {
+    try {
+      const users = await User.find({ "wishlist.product._id": productId });
+
+      for (const user of users) {
+        user.wishlist = user.wishlist.map((item) => {
+          print("ITEM OF USER.CATT", item);
+          if (item.product._id === productId) {
+            return {
+              ...item,
+              product: {
+                ...item.product,
+                name: name,
+                desc: desc,
+                img: img,
+                type: type,
+                stock: stock,
+                price: price,
+                available: available,
+              },
+            };
+          }
+          return item;
+        });
+
+        await user.save();
+      }
+
+      console.log("Product details updated in all carts.");
+    } catch (error) {
+      console.error("Error updating product in carts:", error);
+    }
   }
 
   async SubscribeEvents(payload) {
     payload = JSON.parse(payload);
+
     console.log(payload);
 
     const { event, data = { dummy: 8989 } } = payload;
@@ -226,6 +285,31 @@ class UserService {
         console.log("in create order event");
         console.log(data.userId, order);
         await this.ManageOrder(data.userId, order);
+        break;
+      case "UPDATE_CART_PRODUCT":
+        {
+          print("received data in update cart event", data);
+          await this.updateCart(
+            data.productId,
+            data.name,
+            data.desc,
+            data.img,
+            data.type,
+            data.stock,
+            data.price,
+            data.available
+          );
+          await this.updateWishlist(
+            data.productId,
+            data.name,
+            data.desc,
+            data.img,
+            data.type,
+            data.stock,
+            data.price,
+            data.available
+          );
+        }
         break;
 
       default:
