@@ -202,7 +202,7 @@ class UserService {
 
       for (const user of users) {
         user.wishlist = user.wishlist.map((item) => {
-          print("ITEM OF USER.CATT", item);
+          print("ITEM OF USER.CART", item);
           if (item.product._id === productId) {
             return {
               ...item,
@@ -239,7 +239,7 @@ class UserService {
     console.log("EVENT AND DATA", event, data);
     const { userId, product, order, qty } = data;
 
-    console.log(userId, product, "PRODUCT orderrr?????????", order, qty);
+
 
     switch (event) {
       case "ADD_TO_WISHLIST": {

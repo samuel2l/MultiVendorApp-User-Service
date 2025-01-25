@@ -88,6 +88,7 @@ class UserRepository {
     const user = await User.findById(userId);
     console.log("PARAMS", userId, qty, isRemove, colors);
     console.log(user);
+
     if (user) {
       const wishlistItem = {
         product: {
@@ -140,11 +141,6 @@ class UserRepository {
     }
   }
 
-  areArraysEqual(arr1, arr2) {
-    if (arr1.length !== arr2.length) return false;
-    return arr1.every((value, index) => value === arr2[index]);
-  }
-
   async AddCartItem(
     userId,
     {
@@ -195,6 +191,7 @@ class UserRepository {
         },
         amount: qty,
       };
+      print("AH CART ITEM????",cartItem)
 
       let cartItems = user.cart;
       print("THE CURRENT USRRR CART", cartItems);
@@ -202,10 +199,6 @@ class UserRepository {
       if (cartItems.length > 0) {
         let isExist = false;
         cartItems.map((item) => {
-          print(item.product, "THE ITEM.PRODUCT");
-          print("SIZESSSSS,", sizes);
-          print(item.product.colors, "THE ITEM.PRODUCT");
-          print("COLORSSSS,", colors);
 
           if (item.product._id.toString() === _id.toString()) {
             if (isRemove) {
