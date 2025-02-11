@@ -103,7 +103,7 @@ const userSchema = new mongoose.Schema(
           _id: { type: String, require: true },
           name: { type: String },
           desc: { type: String,default:'' },          
-          img: { type: String },
+          img: { type: [String] },
           type: { type: String ,default:''},
           stock: { type: String ,default:''},
           price: { type: Number },

@@ -65,6 +65,7 @@ module.exports.CreateChannel = async () => {
 };
 module.exports.PublishMessage = (channel, bindingKey, msg) => {
   try {
+    console.log("eieieieieiei")
     channel.publish(process.env.EXCHANGE_NAME, bindingKey, Buffer.from(msg));
     console.log('MESSAGE PUBLISHED ')
     console.log("Sent: ", msg);

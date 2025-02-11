@@ -2,12 +2,14 @@ const UserService = require("../services/user-service");
 const auth = require("./middleware/auth");
 const { SubscribeMessage } = require("../utils");
 const User = require("../database/models/User");
+const Profile = require("../database/models/Profile");
+
 let print=console.log
 userRoutes = (app, channel) => {
   const service = new UserService();
 
   SubscribeMessage(channel, service);
-
+  
 // ROUTE USED TO SEE PROFILE  OF A SELLER. LIKE WHEN YOU GO ON PRODUCT DETAILS YOU SHOULD BE ABLE TO SEE THE SELLER 
   app.get("/seller-profile/:id",async (req,res)=>{
     const user=await User.findById(req.params.id)
@@ -26,6 +28,7 @@ userRoutes = (app, channel) => {
   });
 
   app.post("/login", async (req, res, next) => {
+    print("ahhhhh")
     const { email, password } = req.body;
 
     const { data } = await service.SignIn({ email, password });
