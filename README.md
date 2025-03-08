@@ -42,6 +42,9 @@ The **User Service** is a microservice responsible for managing user-related ope
 		EXCHANGE_NAME=<any exchange name of your choice>
 		QUEUE_NAME=<any queue name of your choice>
 		CUSTOMER_BINDING_KEY=<variable to bind messages to the user/customer queue. eg customerBindingKey>
+		PRODUCT_BINDING_KEY=< variable to bind messages to the product queue. eg productBindingKey>
+		NOTIFICATION_BINDING_KEY=<variable to bind messages to the notification queue. eg notificationBindingKey>
+
 	
 
 
