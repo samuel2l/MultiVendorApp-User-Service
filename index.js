@@ -29,7 +29,7 @@ async function startApp() {
     await userRoutes(app, channel);
 
     app.listen(port, () => {
-      console.log(`Customer is Listening to Port ${port}`);
+      console.log(`User is Listening to Port ${port}`);
     });
   } catch (err) {
     console.log("Failed to start app:", err);

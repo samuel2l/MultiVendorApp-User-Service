@@ -42,6 +42,9 @@ The **User Service** is a microservice responsible for managing user-related ope
 		EXCHANGE_NAME=<any exchange name of your choice>
 		QUEUE_NAME=<any queue name of your choice>
 		CUSTOMER_BINDING_KEY=<variable to bind messages to the user/customer queue. eg customerBindingKey>
+		PRODUCT_BINDING_KEY=< variable to bind messages to the product queue. eg productBindingKey>
+		NOTIFICATION_BINDING_KEY=<variable to bind messages to the notification queue. eg notificationBindingKey>
+
 	
 
 
@@ -59,3 +62,22 @@ Run:
 
 
 You can now test the APIs
+
+This is one of the four services for the **Multivendor Application**.  
+
+### Related Repositories
+
+- **Shopping Frontend:**  
+  [MultivendorPlatform-Shopping-Frontend](https://github.com/haariswaqas/MultivendorPlatform-Shopping-Frontend)
+
+- **Notification Microservice:**  
+  [MultiVendorPlatform-Notification-Microservice](https://github.com/samuel2l/MultiVendorPlatform-Notification-Microservice)
+
+- **Products Microservice:**  
+  [MultiVendorApp-Products-Microservice](https://github.com/samuel2l/MultiVendorApp-Products-Microservice)
+
+- **Shopping Microservice:**  
+  [MultiVendorApp-Products-Microservice](https://github.com/samuel2l/MultivendorPlatform-Shopping-Service)
+
+- **Web App**: The web version of this app, designed by [haariswaqas](https://github.com/haariswaqas//MultivendorPlatform-Shopping-Frontend)
+- **Mobile App**: [Mobile app](https://github.com/samuel2l/MultiVendorPlatform-Mobile-Application)

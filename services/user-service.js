@@ -5,11 +5,11 @@ const {
   GeneratePassword,
   GenerateSignature,
   ValidatePassword,
+  CreateChannel,
+  PublishMessage,
 } = require("../utils");
 const print = console.log;
 const User = require("../database/models/User");
-const { CreateChannel, PublishMessage } = require("../utils");
-
 class UserService {
   constructor() {
     this.repository = new UserRepository();
@@ -76,6 +76,18 @@ class UserService {
       _id: savedUser._id,
       role: role,
     });
+    const channel = await CreateChannel();
+    PublishMessage(
+      channel,
+      process.env.NOTIFICATION_BINDING_KEY,
+      JSON.stringify({
+        event: "SEND_WELCOME_MAIL",
+        data: {
+          email: email,
+        },
+      })
+    );
+
     return FormatData({ id: savedUser._id, token, role });
   }
 
@@ -151,6 +163,7 @@ class UserService {
 
       user.orders.push(orderItem);
       print("is it even pshing?", user.orders);
+      user.cart = [];
     });
     return await user.save();
   }
@@ -159,30 +172,39 @@ class UserService {
     try {
       const users = await User.find({ "cart.product._id": productId });
 
-      for (const user of users) {
-        user.cart = user.cart.map((item) => {
-          print("ITEM OF USER.CATT", item);
-          if (item.product._id === productId) {
-            return {
-              ...item,
-              product: {
-                ...item.product,
-                name: name,
-                desc: desc,
-                img: img,
-                type: type,
-                stock: stock,
-                price: price,
-                available: available,
-              },
-            };
-          }
-          return item;
-        });
-
-        await user.save();
+      if (!users.length) {
+        console.log("No users found with this product in their cart.");
+        return;
       }
 
+      await Promise.all(
+        users.map(async (user) => {
+          user.cart = user.cart.map((item) =>
+            item.product._id.toString() === productId.toString()
+              ? {
+                  ...item,
+                  product: {
+                    ...item.product,
+                    name,
+                    desc,
+                    img,
+                    type,
+                    stock,
+                    price,
+                    available,
+                  },
+                }
+              : item
+          );
+
+          await User.updateOne(
+            { _id: user._id },
+            { $set: { cart: user.cart } }
+          );
+        })
+      );
+
+      console.log("Cart updated for all affected users.");
     } catch (error) {
       console.error("Error updating product in carts:", error);
     }
@@ -198,38 +220,93 @@ class UserService {
     available
   ) {
     try {
-      const users = await User.find({ "wishlist.product._id": productId });
+      const users = await User.find({ "cart.product._id": productId });
 
-      for (const user of users) {
-        user.wishlist = user.wishlist.map((item) => {
-          print("ITEM OF USER.CATT", item);
-          if (item.product._id === productId) {
-            return {
-              ...item,
-              product: {
-                ...item.product,
-                name: name,
-                desc: desc,
-                img: img,
-                type: type,
-                stock: stock,
-                price: price,
-                available: available,
-              },
-            };
-          }
-          return item;
-        });
-
-        await user.save();
+      if (!users.length) {
+        console.log("No users found with this product in their cart.");
+        return;
       }
 
-      console.log("Product details updated in all carts.");
+      await Promise.all(
+        users.map(async (user) => {
+          user.wishlist = user.wishlist.map((item) =>
+            item.product._id.toString() === productId.toString()
+              ? {
+                  ...item,
+                  product: {
+                    ...item.product,
+                    name,
+                    desc,
+                    img,
+                    type,
+                    stock,
+                    price,
+                    available,
+                  },
+                }
+              : item
+          );
+
+          await User.updateOne(
+            { _id: user._id },
+            { $set: { wishlist: user.wishlist } }
+          );
+        })
+      );
+
+      console.log("Cart updated for all affected users.");
     } catch (error) {
       console.error("Error updating product in carts:", error);
     }
   }
 
+  async getEmails(userIds, product) {
+    print(" GETTING EMAILS");
+    const users = await User.find();
+    let emails = [];
+    for (var user of users) {
+      print("chale user???", user._id.toString);
+      if (userIds.includes(user._id.toString())) {
+        emails.push(user.email);
+      }
+    }
+    let payload = {};
+    print("gotten emails", emails);
+    if (emails.length !== 0) {
+      payload = {
+        event: "SEND_PRODUCT_UPDATE_MAIL",
+        data: {
+          emails: emails,
+          product: product,
+        },
+      };
+      const channel = await CreateChannel();
+
+      PublishMessage(
+        channel,
+        process.env.NOTIFICATION_BINDING_KEY,
+        JSON.stringify(payload)
+      );
+    }
+  }
+  async changeOrderStatus(status, buyerId) {
+    const user = await User.findById(buyerId);
+
+   const payload = {
+      event: "SEND_ORDER_STATUS_CHANGE_EMAIL",
+      data: {
+        email: user.email,
+        status
+      },
+    };
+    const channel = await CreateChannel();
+
+    PublishMessage(
+      channel,
+      process.env.NOTIFICATION_BINDING_KEY,
+      JSON.stringify(payload)
+    );
+  }
   async SubscribeEvents(payload) {
     payload = JSON.parse(payload);
 
@@ -238,8 +315,6 @@ class UserService {
     const { event, data = { dummy: 8989 } } = payload;
     console.log("EVENT AND DATA", event, data);
     const { userId, product, order, qty } = data;
-
-    console.log(userId, product, "PRODUCT orderrr?????????", order, qty);
 
     switch (event) {
       case "ADD_TO_WISHLIST": {
@@ -310,6 +385,18 @@ class UserService {
             data.available
           );
         }
+        break;
+      case "GET_USER_EMAILS":
+        console.log("in get user emails event");
+        print(data, "DATAAA");
+        console.log(event, data.userIds, data.product);
+        await this.getEmails(data.userIds, data.product);
+        break;
+      // PublishMessage(channel,process.env.CUSTOMER_BINDING_KEY, JSON.stringify({event:"SEND_ORDER_STATUS_CHANGE_MAIL",data:{
+      //   buyerId:order.customerId,status
+      case "SEND_ORDER_STATUS_CHANGE_MAIL":
+        print("IN SEND ORDER STATUS MAIL EVENT");
+        await this.changeOrderStatus(data.status,data.buyerId)
         break;
 
       default:
